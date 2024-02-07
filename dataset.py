@@ -1,6 +1,7 @@
 import os
 
-import cv2
+# import cv2
+from matplotlib.image import imread
 import numpy as np
 import torch
 from torch.utils.data import Dataset
@@ -40,7 +41,7 @@ class RvssDataset(Dataset):
         return idx, floor_value
     
     def extract_action(self, path_string):
-        res = path_string.rsplit("/", 1)[1].rsplit(".", 1)[0][6:].strip("_")
+        res = path_string.rsplit("/", 1)[1].rsplit(".", 1)[0][6:].strip("_").split("(")[0]
         return res
     
     def decode_image_action(self, index):
@@ -53,7 +54,8 @@ class RvssDataset(Dataset):
         im_arrs = []
         act_arrs = []
         for image_path in image_paths:
-            im_arr = cv2.imread(image_path)
+            # im_arr = cv2.imread(image_path)
+            im_arr = imread(image_path)
             im_arr = np.expand_dims(im_arr, axis=0)
             im_arrs.append(im_arr)
         # print(image_path)
@@ -61,6 +63,7 @@ class RvssDataset(Dataset):
             act_arrs.append(action_signal)
         # print(len(im_arrs))
         im_arrs = np.concatenate(im_arrs, axis=0)
+        im_arrs = im_arrs[:, np.ceil(im_arrs.shape[0]/2).astype(int)::, :, :] # seq, h, w, c
         act_arrs = np.concatenate(act_arrs, axis=0)
         return im_arrs, act_arrs
 
@@ -68,7 +71,7 @@ class RvssDataset(Dataset):
         return self.decode_image_action(index)
 
 if __name__ == "__main__":
-    directory = "/Users/jy/Documents/PD/research/projects/rvss/train"
+    directory = "/home/worker/self-driving-robot/train"
     rvsd = RvssDataset(path=directory, hist_len=1)
     print(len(rvsd))
     print(rvsd.num_stat)

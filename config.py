@@ -2,13 +2,24 @@ import argparse
 
 def parse_args():
     parser = argparse.ArgumentParser(description="args for KJS RVSS2024")
-    parser.add_argument("--data_folder", type=str, 
-                        default="/Users/jy/Documents/PD/research/projects/rvss/train",
+    parser.add_argument("--train_data", type=str, 
+                        default="/home/worker/self-driving-robot/data/train",
+                        help="data directory containing all demons")
+    parser.add_argument("--test_data", type=str, 
+                        default="/home/worker/self-driving-robot/data/test",
                         help="data directory containing all demons")
     
     parser.add_argument("--epochs", type=int, 
-                        default=10,
+                        default=300,
                         help="epochs")
+
+    parser.add_argument("--batch_size", type=int, default=32,
+                        help="batch_size")
+
+    parser.add_argument("--learning_rate", type=float, default=1e-3,
+                        help="batch_size")
+    parser.add_argument("--weight_decay", type=float, default=0,
+                        help="weight decay")
 
     parser.add_argument("--message", type=str,
                         required=True,
