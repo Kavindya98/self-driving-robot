@@ -9,5 +9,11 @@ def parse_args():
     parser.add_argument("--epochs", type=int, 
                         default=10,
                         help="epochs")
+
+    parser.add_argument("--message", type=str,
+                        required=True,
+                        help="message for logging the training")
+    parser.add_argument("--debug", action="store_true",
+                        help="mode for running scripts")
     args = parser.parse_args()
     return args

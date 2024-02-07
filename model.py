@@ -1,5 +1,6 @@
-import torch
+import torch as tc
 import torch.nn as nn
+import torch.nn.functional as F
 
 class BaseModel(nn.Module):
     def __init__(self):
@@ -16,9 +17,10 @@ class BaseModel(nn.Module):
         act = self.MLP(x)
         return act
     
-    def get_loss(self, output, label):
-        loss = ((output - label)**2).mean()
-        return loss
+    def get_loss(self, output, target):
+        loss = ((output - target)**2).mean()
+        l1_loss = (output - target).abs().mean()
+        return {"loss": loss, "l1_loss": l1_loss}
     
 
 class AlexNet(nn.Module):
@@ -69,3 +71,74 @@ class AlexNet(nn.Module):
         out = self.fc1(out)
         out = self.fc2(out)
         return out
+    
+    def get_loss(self, output, target):
+        loss = ((output - target)**2).mean()
+        l1_loss = (output - target).abs().mean()
+        return {"loss": loss, "l1_loss": l1_loss}
+
+
+class BasicBlockEnc(nn.Module):
+
+    def __init__(self, in_planes, stride=1):
+        super().__init__()
+
+        planes = in_planes*stride
+
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=True)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=True)
+        self.bn2 = nn.BatchNorm2d(planes)
+
+        if stride == 1:
+            self.shortcut = nn.Sequential()
+        else:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, planes, kernel_size=1, stride=stride, bias=True),
+                nn.BatchNorm2d(planes)
+            )
+
+    def forward(self, x):
+        out = tc.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        out += self.shortcut(x)
+        out = tc.relu(out)
+        return out
+    
+class ResNet18Enc(BaseModel):
+
+    def __init__(self, num_Blocks=[2,2,2,2], nc=3):
+        super().__init__()
+        self.in_planes = 64
+        self.conv1 = nn.Conv2d(nc, 64, kernel_size=3, stride=2, padding=1, bias=True)
+        self.bn1 = nn.BatchNorm2d(64)
+        self.layer1 = self._make_layer(BasicBlockEnc, 64, num_Blocks[0], stride=1)
+        self.layer2 = self._make_layer(BasicBlockEnc, 128, num_Blocks[1], stride=2)
+        self.layer3 = self._make_layer(BasicBlockEnc, 256, num_Blocks[2], stride=2)
+        self.layer4 = self._make_layer(BasicBlockEnc, 512, num_Blocks[3], stride=2)
+        self.layer5 = nn.Linear(512, 1)
+
+    def _make_layer(self, BasicBlockEnc, planes, num_Blocks, stride):
+        strides = [stride] + [1]*(num_Blocks-1)
+        layers = []
+        for stride in strides:
+            layers += [BasicBlockEnc(self.in_planes, stride)]
+            self.in_planes = planes
+        return nn.Sequential(*layers)
+
+    def forward(self, x):
+        x = tc.relu(self.bn1(self.conv1(x)))
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
+        x = F.adaptive_avg_pool2d(x, 1)
+        x = x.view(x.size(0), -1)
+        x = self.layer5(x)
+        return x
+    
+if __name__ == "__main__":
+    resnet = ResNet18Enc()
+    t1 = tc.rand(16, 3, 240, 320)
+    out = resnet(t1)
+    print(out.shape)
