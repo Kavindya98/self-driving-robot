@@ -4,6 +4,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from model import BaseModel
+from model import AlexNet
 from dataset import RvssDataset
 from config import parse_args
 
@@ -18,14 +19,13 @@ if __name__ == "__main__":
     print("args parsed...")
     epochs = args.epochs
 
-
-    model = BaseModel()
+    model = AlexNet()
     print("model loaded...")
 
     rvsd = RvssDataset(args.data_folder, hist_len=1)
-    data_loader = DataLoader(rvsd, batch_size=2, shuffle=True, num_workers=2)
+    data_loader = DataLoader(rvsd, batch_size=32, shuffle=True, num_workers=2)
     optimizer = torch.optim.Adam(model.parameters(),
-        lr=1e-3,
+        lr=1e-4,
         weight_decay=0
     )
 
@@ -33,9 +33,8 @@ if __name__ == "__main__":
     for ep in range(epochs):
         for idx, (batch_im, batch_act) in enumerate(data_loader):
             optimizer.zero_grad()
-            output = model(batch_im.float())
-
-            loss = model.get_loss(output, batch_act)
+            output = model(batch_im.float().squeeze(dim=1).permute(0, 3, 1, 2))
+            loss = ((output - batch_act)**2).mean()
 
             loss.backward()
             optimizer.step()
@@ -45,4 +44,12 @@ if __name__ == "__main__":
                     ep, epochs, idx, len(data_loader), loss.item()
                 )
             )
-        model.save("checkpoint{}.pt".format(ep))
+        torch.save(model, "models/checkpoint{}.pt".format(ep))
+
+
+# difference between diffusion model and variational auto encoder, probablisitc graph model and variational inferences.
+# high order difusion models richard hartley
+# find high density geodiesic pahts in diffusion latent space
+# weighted pathway weighed by the probabilist
+# caluculas of variation.
+# diffusion is the solution to the shortest path problem???
