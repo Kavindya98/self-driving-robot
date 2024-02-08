@@ -10,21 +10,23 @@ import matplotlib.gridspec as gridspec
 import torch
 from torch.utils.data import DataLoader
 import torchvision.models
+from torchvision import transforms
 
 from model import BaseModel
 from model import AlexNet
-from model import ResNet18Enc, ResNet18_Pretrained
+from model import ResNet18Enc, ResNet18_Pretrained, ViT_Pretrained
 from dataset import RvssDataset
 from config import parse_args
 
 
 LOSS_KEYS = ["loss", "l1_loss"]
 
+
 def train(args, logging, result_dir):
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda:2' if torch.cuda.is_available() else 'cpu')
 
     logging.info("model loaded...")
-    model = ResNet18_Pretrained()
+    model = ViT_Pretrained()
     model = model.to(device)
     logging.info(model)
 
@@ -48,12 +50,17 @@ def train(args, logging, result_dir):
         # training loop
         model.train()
         for idx, (batch_im, batch_act) in enumerate(data_loader):
+
+            # transform = transforms.Compose([transforms.ConvertImageDtype(torch.float),
+            #                                 transforms.Normalize(mean=MEAN,std=STD)])
+            # batch_im = transform(batch_im)
             batch_im = batch_im.to(device)
             batch_act = batch_act.to(device)
 
             output = model(batch_im.float().squeeze(dim=1).permute(0, 3, 1, 2))
             losses = model.get_loss(output, batch_act)
-            loss = losses["loss"]
+            #loss = losses["weight_l2_loss"]
+            loss = losses["l1_loss"]
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()

@@ -8,12 +8,21 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
+MEAN = [0.485, 0.456, 0.406]
+STD = [0.229, 0.224, 0.225]
+
 class RvssDataset(Dataset):
     def __init__(self, path, hist_len=1):
         super().__init__()
+
+        self.transform = transforms.Compose([transforms.RandomResizedCrop(size=224),
+                                        transforms.ToTensor(),
+                                         transforms.Normalize(mean=MEAN,std=STD),
+                                         transforms.ToPILImage()])
         self.path = path
         self.hist_len = hist_len
         self._prep(path)
+        
 
     def _prep(self, path):
         file_metadata = {}
@@ -60,7 +69,7 @@ class RvssDataset(Dataset):
             #im_arr = imread(image_path)
             #print("Image size",im_arr.size())
             #im_arr = cv2.resize(im_arr, dsize=(224, 224))
-            im_arr=transforms.Resize((225, 224))(im_arr)
+            im_arr=self.transform(im_arr)
             im_arr = np.expand_dims(im_arr, axis=0)
             im_arrs.append(im_arr)
         # print(image_path)

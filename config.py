@@ -6,11 +6,11 @@ def parse_args():
                         default="/media/SSD2/Dataset/Self-Driving/train",
                         help="data directory containing all demons")
     parser.add_argument("--test_data", type=str, 
-                        default="/media/SSD2/Dataset/Self-Driving/train",
+                        default="/media/SSD2/Dataset/Self-Driving/test",
                         help="data directory containing all demons")
     
     parser.add_argument("--epochs", type=int, 
-                        default=30,
+                        default=70,
                         help="epochs")
 
     parser.add_argument("--batch_size", type=int, default=32,

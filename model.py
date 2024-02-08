@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models
 
+import timm
+
 class BaseModel(nn.Module):
     def __init__(self):
         super().__init__()
@@ -152,7 +154,28 @@ class ResNet18_Pretrained(nn.Module):
     
     def get_loss(self, output, target):
         loss = ((output - target)**2).mean()
+        weight_l2_loss = (((output - target)**2) * target.abs().exp()).mean()
         l1_loss = (output - target).abs().mean()
+        return {"loss": loss, "l1_loss": l1_loss, "weight_l2_loss": weight_l2_loss}
+
+
+
+class ViT_Pretrained(nn.Module):
+
+    def __init__(self):
+        super(ViT_Pretrained, self).__init__()
+
+        self.network = timm.create_model("deit_tiny_patch16_224.fb_in1k",pretrained=True,num_classes=1)
+
+    def forward(self, x):
+        out = self.network(x)
+        return out
+    
+    def get_loss(self, output, target):
+        loss = ((output - target)**2).mean()
+
+        l1_loss = (output - target).abs().mean()
+
         return {"loss": loss, "l1_loss": l1_loss}
 
 
