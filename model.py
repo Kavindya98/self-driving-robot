@@ -1,6 +1,7 @@
 import torch as tc
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision.models
 
 class BaseModel(nn.Module):
     def __init__(self):
@@ -136,9 +137,28 @@ class ResNet18Enc(BaseModel):
         x = x.view(x.size(0), -1)
         x = self.layer5(x)
         return x
+
+class ResNet18_Pretrained(nn.Module):
+
+    def __init__(self):
+        super(ResNet18_Pretrained, self).__init__()
+
+        self.network = torchvision.models.resnet18(pretrained=True)
+        self.network.fc = nn.Linear(512,1)
+
+    def forward(self, x):
+        out = self.network(x)
+        return out
     
+    def get_loss(self, output, target):
+        loss = ((output - target)**2).mean()
+        l1_loss = (output - target).abs().mean()
+        return {"loss": loss, "l1_loss": l1_loss}
+
+
 if __name__ == "__main__":
     resnet = ResNet18Enc()
     t1 = tc.rand(16, 3, 240, 320)
     out = resnet(t1)
     print(out.shape)
+

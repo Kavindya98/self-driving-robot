@@ -3,14 +3,14 @@ import argparse
 def parse_args():
     parser = argparse.ArgumentParser(description="args for KJS RVSS2024")
     parser.add_argument("--train_data", type=str, 
-                        default="/home/worker/self-driving-robot/data/train",
+                        default="/media/SSD2/Dataset/Self-Driving/train",
                         help="data directory containing all demons")
     parser.add_argument("--test_data", type=str, 
-                        default="/home/worker/self-driving-robot/data/test",
+                        default="/media/SSD2/Dataset/Self-Driving/train",
                         help="data directory containing all demons")
     
     parser.add_argument("--epochs", type=int, 
-                        default=300,
+                        default=30,
                         help="epochs")
 
     parser.add_argument("--batch_size", type=int, default=32,

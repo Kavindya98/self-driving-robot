@@ -1,7 +1,9 @@
 import os
 
-# import cv2
-from matplotlib.image import imread
+
+#from matplotlib.image import imread
+from PIL import Image
+from torchvision import transforms
 import numpy as np
 import torch
 from torch.utils.data import Dataset
@@ -54,8 +56,11 @@ class RvssDataset(Dataset):
         im_arrs = []
         act_arrs = []
         for image_path in image_paths:
-            # im_arr = cv2.imread(image_path)
-            im_arr = imread(image_path)
+            im_arr = Image.open(image_path)
+            #im_arr = imread(image_path)
+            #print("Image size",im_arr.size())
+            #im_arr = cv2.resize(im_arr, dsize=(224, 224))
+            im_arr=transforms.Resize((225, 224))(im_arr)
             im_arr = np.expand_dims(im_arr, axis=0)
             im_arrs.append(im_arr)
         # print(image_path)
@@ -71,7 +76,7 @@ class RvssDataset(Dataset):
         return self.decode_image_action(index)
 
 if __name__ == "__main__":
-    directory = "/home/worker/self-driving-robot/train"
+    directory = "/media/SSD2/Dataset/Self-Driving/train"
     rvsd = RvssDataset(path=directory, hist_len=1)
     print(len(rvsd))
     print(rvsd.num_stat)

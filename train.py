@@ -9,12 +9,14 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import torch
 from torch.utils.data import DataLoader
+import torchvision.models
 
 from model import BaseModel
 from model import AlexNet
-from model import ResNet18Enc
+from model import ResNet18Enc, ResNet18_Pretrained
 from dataset import RvssDataset
 from config import parse_args
+
 
 LOSS_KEYS = ["loss", "l1_loss"]
 
@@ -22,7 +24,8 @@ def train(args, logging, result_dir):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     logging.info("model loaded...")
-    model = ResNet18Enc().to(device)
+    model = ResNet18_Pretrained()
+    model = model.to(device)
     logging.info(model)
 
     rvsd = RvssDataset(args.train_data, hist_len=1)
