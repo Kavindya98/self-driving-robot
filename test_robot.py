@@ -22,6 +22,9 @@ from model import *
 
 CUDA_AVALIABLE = torch.cuda.is_available()
 
+MEAN = [0.485, 0.456, 0.406]
+STD = [0.229, 0.224, 0.225]
+
 parser = argparse.ArgumentParser(description='PiBot client')
 parser.add_argument('--ip', type=str, default='localhost', help='IP address of PiBot')
 parser.add_argument('--model', type=str, default='', help="Filename of model to be used")
@@ -37,7 +40,7 @@ bot.setVelocity(0, 0)
 
 
 #LOAD NETWORK WEIGHTS HERE
-base_path = "/Users/eric/Documents/phd/RVSS_Need4Speed/"
+base_path = "C:/Users/kpimb/OneDrive/Desktop/workshop/self-driving-robot/RVSS_Need4Speed/"
 model_path = base_path + "self-driving-robot/models/" + args.model
 nn_model = torch.load(model_path, map_location="cpu")
 
@@ -72,6 +75,14 @@ try:
         
         # get an image from the the robot
         img_array = bot.getImage() # numpy ndarray
+
+        transform = transforms.Compose([transforms.RandomResizedCrop((225,224)),
+                                        transforms.ToTensor(),
+                                         transforms.Normalize(mean=MEAN,std=STD),
+                                         transforms.ToPILImage()])
+
+        # transform image
+        img_array = transform(img_array)
 
         # crop image
         img_array = img_array[np.ceil(img_array.shape[0]/2).astype(int):, :]
