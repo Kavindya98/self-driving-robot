@@ -14,7 +14,7 @@ from torchvision import transforms
 
 from model import BaseModel
 from model import AlexNet
-from model import ResNet18Enc, ResNet18_Pretrained, ViT_Pretrained
+from model import ResNet18Enc, ResNet18_Pretrained, ViT_Pretrained, ViT_Base_Pretrained
 from dataset import RvssDataset
 from config import parse_args
 
@@ -26,7 +26,7 @@ def train(args, logging, result_dir):
     device = torch.device('cuda:2' if torch.cuda.is_available() else 'cpu')
 
     logging.info("model loaded...")
-    model = ViT_Pretrained()
+    model = ViT_Base_Pretrained()
     model = model.to(device)
     logging.info(model)
 
@@ -59,8 +59,8 @@ def train(args, logging, result_dir):
 
             output = model(batch_im.float().squeeze(dim=1).permute(0, 3, 1, 2))
             losses = model.get_loss(output, batch_act)
-            #loss = losses["weight_l2_loss"]
-            loss = losses["l1_loss"]
+            loss = losses["weight_l2_loss"]
+            #loss = losses["l1_loss"]
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()

@@ -15,7 +15,7 @@ class RvssDataset(Dataset):
     def __init__(self, path, hist_len=1):
         super().__init__()
 
-        self.transform = transforms.Compose([transforms.RandomResizedCrop(size=224),
+        self.transform = transforms.Compose([transforms.RandomResizedCrop((225,224)),
                                         transforms.ToTensor(),
                                          transforms.Normalize(mean=MEAN,std=STD),
                                          transforms.ToPILImage()])
